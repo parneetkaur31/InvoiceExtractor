@@ -1,0 +1,15 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Local DB
+db.sqlite3
+
+# Media uploads
+media/
+
+# Virtual env
+venv/

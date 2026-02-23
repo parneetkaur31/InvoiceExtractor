@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results</title>
+</head>
+<body>
+
+<h2>Extracted Invoice Data</h2>
+
+<a href="/export/">Download Excel</a>
+<hr>
+
+{% for r in results %}
+
+<h3>{{ r.name }}</h3>
+
+<table border="1" cellpadding="5">
+
+<tr><td>Invoice No</td><td>{{ r.fields.invoice_no }}</td></tr>
+<tr><td>Invoice Date</td><td>{{ r.fields.invoice_date }}</td></tr>
+<tr><td>Order ID</td><td>{{ r.fields.order_id }}</td></tr>
+<tr><td>GSTIN</td><td>{{ r.fields.gstin }}</td></tr>
+<tr><td>Grand Total</td><td>{{ r.fields.grand_total }}</td></tr>
+
+</table>
+
+<details>
+<summary>Raw Text</summary>
+<pre>{{ r.preview }}</pre>
+</details>
+
+<hr>
+
+{% endfor %}
+
+<a href="/">Upload More</a>
+
+</body>
+</html>

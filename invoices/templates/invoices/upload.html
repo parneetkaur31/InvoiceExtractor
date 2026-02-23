@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Invoices</title>
+</head>
+<body>
+
+<h2>Upload Invoice PDFs</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <input type="file"
+           name="pdfs"
+           multiple
+           accept=".pdf">
+
+    <br><br>
+
+    <button type="submit">Upload</button>
+</form>
+
+</body>
+</html>
