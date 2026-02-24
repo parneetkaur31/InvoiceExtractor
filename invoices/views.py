@@ -18,6 +18,7 @@ def upload_files(request):
         files = request.FILES.getlist('pdfs')
 
         upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
+        os.makedirs(upload_dir, exist_ok=True)
 
         extracted_data = []
 
