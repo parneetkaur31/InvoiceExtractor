@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import upload_files, export_excel
-from invoice_ai.invoices import views
+from . import views
 
 urlpatterns = [
     path('', upload_files),
