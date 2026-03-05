@@ -1,24 +1,43 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Upload Invoices</title>
 </head>
+
 <body>
 
-<h2>Upload Invoice PDFs</h2>
+    <h2>Upload Invoice PDFs</h2>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-    <input type="file"
-           name="pdfs"
-           multiple
-           accept=".pdf">
+        <input type="file" name="pdfs" multiple accept=".pdf">
 
-    <br><br>
+        <br><br>
 
-    <button type="submit">Upload</button>
-</form>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="progress">Processing...</div>
+    <script>
+        function checkProgress() {
 
+            fetch("/status/")
+                .then(res => res.json())
+                .then(data => {
+
+                    document.getElementById("progress").innerText =
+                        data.processed + " out of " + data.total + " processed";
+
+                    if (data.processed < data.total) {
+                        setTimeout(checkProgress, 2000);
+                    }
+
+                });
+        }
+
+        checkProgress();
+    </script>
 </body>
+
 </html>

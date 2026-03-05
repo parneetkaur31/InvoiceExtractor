@@ -6,7 +6,7 @@ from importlib.resources import files
 from django.shortcuts import render
 from django.conf import settings
 import pandas as pd
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .pdf_utils import extract_text_from_pdf
 from .rule_engine import extract_fields, REQUIRED_FIELDS
 from .models import Invoice
@@ -89,7 +89,7 @@ def process_files_background(file_paths):
                 ai_fields = extract_with_ai(text)
                 fields.update(ai_fields)
 
-            Invoice.objects.create(
+            invoice = Invoice.objects.create(
                 pdf_name=os.path.basename(file_path),
                 invoice_no=fields.get("invoice_no"),
                 invoice_date=fields.get("invoice_date"),
@@ -98,8 +98,22 @@ def process_files_background(file_paths):
                 grand_total=fields.get("grand_total"),
             )
 
+            invoice.status = "done"
+            invoice.save()
+
             # free memory
             del text
 
         except Exception as e:
             print("Error processing:", file_path, e)
+
+    
+def processing_status(request):
+
+    total = Invoice.objects.count()
+    done = Invoice.objects.filter(status="done").count()
+
+    return JsonResponse({
+        "processed": done,
+        "total": total
+    })
