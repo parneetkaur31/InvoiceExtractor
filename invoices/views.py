@@ -1,4 +1,8 @@
+from dataclasses import fields
 import os
+import gc
+import threading
+from importlib.resources import files
 from django.shortcuts import render
 from django.conf import settings
 import pandas as pd
@@ -17,66 +21,32 @@ def upload_files(request):
 
         files = request.FILES.getlist('pdfs')
 
+        # 🚨 Limit files for Render free tier
+        if len(files) > 10:
+            return HttpResponse("Maximum 10 files per upload on demo server.")
+
         upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
         os.makedirs(upload_dir, exist_ok=True)
 
-        extracted_data = []
+        file_paths = []
 
         for file in files:
-
             file_path = os.path.join(upload_dir, file.name)
 
-            # Save file
             with open(file_path, 'wb+') as dest:
                 for chunk in file.chunks():
                     dest.write(chunk)
 
-            # Extract text
-            text = extract_text_from_pdf(file_path)
+            file_paths.append(file_path)
 
-            fields = extract_fields(text)
+        # 🚀 Start background processing
+        threading.Thread(
+            target=process_files_background,
+            args=(file_paths,),
+            daemon=True
+        ).start()
 
-            missing = [f for f in REQUIRED_FIELDS if not fields.get(f)]
-
-            # 🔽 AI FALLBACK (only if needed)
-            if missing:
-                ai_fields = extract_with_ai(text)
-
-                if ai_fields:
-                    fields.update(ai_fields)
-
-                    # 🧠 AUTO-LEARN RULES
-                    for field, value in ai_fields.items():
-                        rule_data = learn_rule_from_text(field, value, text)
-
-                        if rule_data:
-                            ExtractionRule.objects.create(
-                                template_id="generic",
-                                field_name=rule_data["field_name"],
-                                anchor=rule_data["anchor"],
-                                regex=rule_data["regex"],
-                                active=True,
-                            )
-
-
-            Invoice.objects.create(
-                pdf_name=file.name,
-                invoice_no=fields.get("invoice_no"),
-                invoice_date=fields.get("invoice_date"),
-                order_id=fields.get("order_id"),
-                gstin=fields.get("gstin"),
-                grand_total=fields.get("grand_total"),
-            )
-
-            extracted_data.append({
-                "name": file.name,
-                "fields": fields,
-                "preview": text[:1000]
-            })
-
-        return render(request, "invoices/success.html", {
-            "results": extracted_data
-        })
+        return HttpResponse("Files uploaded. Processing started in background.")
 
     return render(request, "invoices/upload.html")
 
@@ -104,3 +74,32 @@ def export_excel(request):
     df.to_excel(response, index=False)
 
     return response
+
+
+
+def process_files_background(file_paths):
+
+    for file_path in file_paths:
+        try:
+            text = extract_text_from_pdf(file_path)
+            fields = extract_fields(text)
+
+            # 🔹 AI fallback if rule-based misses invoice_no
+            if not fields.get("invoice_no"):
+                ai_fields = extract_with_ai(text)
+                fields.update(ai_fields)
+
+            Invoice.objects.create(
+                pdf_name=os.path.basename(file_path),
+                invoice_no=fields.get("invoice_no"),
+                invoice_date=fields.get("invoice_date"),
+                order_id=fields.get("order_id"),
+                gstin=fields.get("gstin"),
+                grand_total=fields.get("grand_total"),
+            )
+
+            # free memory
+            del text
+
+        except Exception as e:
+            print("Error processing:", file_path, e)
