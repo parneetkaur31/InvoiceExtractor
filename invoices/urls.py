@@ -6,4 +6,5 @@ urlpatterns = [
     path('', upload_files),
     path('export/', export_excel),
     path("status/", views.processing_status, name="status"),
+    path("success/", views.success_page, name="success"),
 ]

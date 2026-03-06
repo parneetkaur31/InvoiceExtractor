@@ -28,6 +28,9 @@
                     if (data.processed < data.total) {
                         setTimeout(updateStatus, 2000);
                     }
+                    else if (data.total > 0) {
+                        window.location.href = "/success/";
+                    }
 
                 })
 

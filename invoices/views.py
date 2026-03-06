@@ -121,3 +121,31 @@ def processing_status(request):
         "processed": done,
         "total": total
     })
+
+
+def success_page(request):
+
+    qs = Invoice.objects.all().values(
+        "pdf_name",
+        "invoice_no",
+        "invoice_date",
+        "order_id",
+        "gstin",
+        "grand_total",
+    )
+
+    results = []
+
+    for r in qs:
+        results.append({
+            "name": r["pdf_name"],
+            "fields": {
+                "invoice_no": r["invoice_no"],
+                "invoice_date": r["invoice_date"],
+                "order_id": r["order_id"],
+                "gstin": r["gstin"],
+                "grand_total": r["grand_total"],
+            }
+        })
+
+    return render(request, "invoices/success.html", {"results": results})
