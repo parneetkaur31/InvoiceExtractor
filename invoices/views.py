@@ -58,11 +58,21 @@ def export_excel(request):
 
     qs = Invoice.objects.all().values(
         "pdf_name",
-        "invoice_no",
         "invoice_date",
+        "invoice_no",
+        "irn",
         "order_id",
-        "gstin",
+        "order_date",
+        "title",
+        "hsn_sac",
+        "quantity",
+        "imei_serial",
+        "total",
         "grand_total",
+        "sold_by_address",
+        "gstin",
+        "bill_to_address",
+        "ship_to_address",
     )
 
     df = pd.DataFrame(qs)
@@ -98,10 +108,19 @@ def process_files_background(file_paths):
             if invoice:
                 invoice.invoice_no = fields.get("invoice_no")
                 invoice.invoice_date = fields.get("invoice_date")
+                invoice.irn = fields.get("irn")
                 invoice.order_id = fields.get("order_id")
-                invoice.gstin = fields.get("gstin")
+                invoice.order_date = fields.get("order_date")
+                invoice.title = fields.get("title")
+                invoice.hsn_sac = fields.get("hsn_sac")
+                invoice.quantity = fields.get("quantity")
+                invoice.imei_serial = fields.get("imei_serial")
+                invoice.total = fields.get("total")
                 invoice.grand_total = fields.get("grand_total")
-                invoice.status = "done"
+                invoice.sold_by_address = fields.get("sold_by_address")
+                invoice.gstin = fields.get("gstin")
+                invoice.bill_to_address = fields.get("bill_to_address")
+                invoice.ship_to_address = fields.get("ship_to_address")
                 invoice.save()
 
             # free memory
